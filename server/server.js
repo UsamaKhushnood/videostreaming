@@ -4,7 +4,12 @@ var io = require('socket.io')(server);
 
 server.listen(8080);
 
+
+connections = [];
+
 io.on('connection', function (socket) {
+    connections.push(socket);
+    console.log('Connected: %s Socket Connected', connections.length);
     socket.on('join', function (data) {
         socket.join(data.roomId);
         socket.room = data.roomId;

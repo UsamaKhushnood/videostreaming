@@ -5,6 +5,8 @@ import io from 'socket.io-client'
 import { getDisplayStream } from '../helpers/media-access';
 import ShareScreenIcon from './ShareScreenIcon';
 
+
+
 class Video extends React.Component {
   constructor() {
     super()
@@ -19,16 +21,63 @@ class Video extends React.Component {
       waiting: true
     }
   }
+
+
   videoCall = new VideoCall()
   componentDidMount() {
-    const socket = io(process.env.REACT_APP_SIGNALING_SERVER)
+    // const socket = io(process.env.REACT_APP_SIGNALING_SERVER)
+    const socket = io(process.env.REACT_APP_SIGNALING_SERVER,  {
+  path: '/socket.io/v1/stream/init'
+});
+socket.connect()
+
+// const socket1 = io(process.env.REACT_APP_SIGNALING_SERVER, {
+//   path: '/socket.io/v1/stream/accept',stream : 12, sdpOffer : {}, video  : true, audio : true
+// });
+    // setTimeout(() => {
+    //   if (data.type === 'offer' && component.state.initiator) return
+    //   if (data.type === 'answer' && !component.state.initiator) return
+    //   component.call(data)      
+
+    // }, 2000);
     const component = this
     this.setState({ socket })
     const { roomId } = this.props.match.params
     // socket.emit('join', ////{ roomId: roomId })
-    this.getUserMedia().then(() => {
-      console.log("get user media")
-      socket.emit('join', { roomId: roomId })
+    // socket.emit('join', { roomId: roomId });
+
+    // socket.emit('/stream/init', {guest: roomId});
+    // this.getUserMedia().then(() => {
+    //   console.log("get user media")
+    //   socket.emit('join', { roomId: roomId })
+    // })
+    
+    // const socket3 = io(process.env.REACT_APP_SIGNALING_SERVER, {
+    //   path: '/socket.io/v1/publisher/watch',stream : "SNzNWKiRprQWQEisAAK9", publisherId :"WyFtTdo8444"
+    // });
+// const socket3 = io(process.env.REACT_APP_SIGNALING_SERVER)
+ 
+      // io.use((socket, next) => {
+      //   let token = socket.handshake.query;
+      //     console.log(token, "token is working");
+      // });
+    // const socket4 = io(process.env.REACT_APP_SIGNALING_SERVER, {
+    //   path: '/socket.io/v1/stream/reject',stream : 12
+    // });
+    // const socket4 = io(process.env.REACT_APP_SIGNALING_SERVER, {
+    //   path: '/socket.io/v1/stream/reject',stream : 12
+    // });
+  
+
+    socket.on('disconnect', (data) => {
+      console.log('error  started')
+      console.log("disconnected", data);
+      console.log('error  ended');
+    });
+
+    socket.on('connect', () => {
+      console.log('init');
+      // component.setState({ initiator: true })
     })
     socket.on('init', () => {
       console.log('init');
@@ -84,15 +133,19 @@ class Video extends React.Component {
       stream.oninactive = () => {
         this.state.peer.removeStream(this.state.localStream)  
         this.getUserMedia().then(() => {
+          console.log("this.getUserMedia(")
           this.state.peer.addStream(this.state.localStream)  
         })
       }
       this.setState({ streamUrl: stream, localStream: stream })
       this.localVideo.srcObject = stream   
       console.log('peer')
-      this.state.peer && this.state.peer.addStream(stream)   
+      this.state.peer && this.state.peer.addStream(stream)  
+      console.log('peerSuccessful')
     })
   }
+
+
   enter = roomId => {
     this.setState({ connecting: true })
     const peer = this.videoCall.init(
